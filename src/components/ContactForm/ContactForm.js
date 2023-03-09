@@ -1,46 +1,31 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import { Notify } from 'notiflix';
 import { Button, Form, FormWrapper, InputForm } from './ContactForm.styled';
 
-export class PhonebookForm extends Component {
-  state = {
-    name: '',
-    number: '',
-  };
+export const PhonebookForm = ({ contacts, addContact }) => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
-  static propTypes = {
-    contacts: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        name: PropTypes.string.isRequired,
-        number: PropTypes.string.isRequired,
-      })
-    ),
-    addContact: PropTypes.func,
-  };
-
-  handleInputChange = event => {
+  const handleInputChange = event => {
     const { name, value } = event.currentTarget;
 
-    this.setState({
-      [name]: value,
-    });
+    if (name === 'name') {
+      setName(value);
+    }
+    if (name === 'number') {
+      setNumber(value);
+    }
   };
 
-  handleFormSubmit = event => {
+  const handleFormSubmit = event => {
     event.preventDefault();
-
-    const { contacts, addContact } = this.props;
-    const { name, number } = this.state;
     const contact = { id: nanoid(), name, number };
 
     const alreadyExists = contacts.findIndex(item => {
       const name = item.name.toLowerCase();
-
       const newName = contact.name.toLowerCase();
-
       return name === newName;
     });
 
@@ -51,46 +36,47 @@ export class PhonebookForm extends Component {
       addContact(contact);
     }
 
-    this.reset();
+    setName('');
+    setNumber('');
   };
 
-  reset = () => {
-    this.setState({
-      name: '',
-      number: '',
-    });
-  };
+  return (
+    <Form onSubmit={handleFormSubmit}>
+      <FormWrapper>
+        <InputForm
+          type="text"
+          name="name"
+          value={name}
+          placeholder="Enter name"
+          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+          onChange={handleInputChange}
+          required
+        />
 
-  render() {
-    const { name, number } = this.state;
+        <InputForm
+          type="tel"
+          name="number"
+          value={number}
+          placeholder="Enter phone number"
+          pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+          title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
+          onChange={handleInputChange}
+          required
+        />
+      </FormWrapper>
+      <Button type="submit">Add contact</Button>
+    </Form>
+  );
+};
 
-    return (
-      <Form onSubmit={this.handleFormSubmit}>
-        <FormWrapper>
-          <InputForm
-            type="text"
-            name="name"
-            value={name}
-            placeholder="Enter name"
-            pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-            title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-            onChange={this.handleInputChange}
-            required
-          />
-
-          <InputForm
-            type="tel"
-            name="number"
-            value={number}
-            placeholder="Enter phone number"
-            pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-            title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-            onChange={this.handleInputChange}
-            required
-          />
-        </FormWrapper>
-        <Button type="submit">Add contact</Button>
-      </Form>
-    );
-  }
-}
+PhonebookForm.propTypes = {
+  contacts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      number: PropTypes.string.isRequired,
+    })
+  ),
+  addContact: PropTypes.func,
+};
